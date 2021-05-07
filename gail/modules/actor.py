@@ -13,16 +13,14 @@ class Actor(nn.Module):
 
         self.actor1 = nn.Linear(state_dim, net_dim[0])
         self.actor2 = nn.Linear(net_dim[0], net_dim[1])
-        #self.actor3 = nn.Linear(net_dim[1], net_dim[2])
-        self.actor4 = nn.Linear(net_dim[1], action_dim)
+        self.actor3 = nn.Linear(net_dim[1], action_dim)
 
         self.optimiser = torch.optim.Adam(self.parameters(), lr=lr, betas=betas)
 
     def forward(self, state):
         x = torch.relu(self.actor1(state))
         x = torch.relu(self.actor2(x))
-        #x = torch.relu(self.actor3(x))
-        x = torch.tanh(self.actor4(x))
+        x = torch.tanh(self.actor3(x))
 
         return x
 

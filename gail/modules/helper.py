@@ -10,7 +10,7 @@ def evaluate(n_eval_episodes, env, max_timesteps, policy):
             action = policy.select_action(state)
             state, reward, done, _ = env.step(action)
             total_reward += reward
-            if done:  # TODO is this necessary????
+            if done:
                 i += 1
                 break
 
