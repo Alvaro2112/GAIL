@@ -29,7 +29,6 @@ class Discriminator(nn.Module):
         return x
 
     def update(self):
-
         expert = self.expert.sample(self.update_batch_size).to(device)
         state = self.expert.sample_state(self.update_batch_size).to(device)
         action = self.actor(state)

@@ -41,7 +41,6 @@ def cfg():
 def main(n_epochs, eval_frequency, net_dim, lr, betas, n_iter, batch_size, max_timesteps, n_eval_episodes, env_name,
          expert):
     import pybulletgym
-    pybulletgym
 
     env = gym.make(env_name)
     state_dim = env.observation_space.shape[0]
@@ -69,7 +68,9 @@ def main(n_epochs, eval_frequency, net_dim, lr, betas, n_iter, batch_size, max_t
 
         # update policy n_iter times
         params = gail.update(n_iter)
+
         if epoch % eval_frequency == 0:
+
             # evaluate in environment
             avg_reward = evaluate(n_eval_episodes, env, max_timesteps, gail)
 

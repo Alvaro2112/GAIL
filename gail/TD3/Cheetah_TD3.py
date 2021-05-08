@@ -9,6 +9,8 @@ import torch.optim as optim
 from sacred import Experiment
 from torch import nn
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 ex = Experiment()
 
 neptune.init(project_qualified_name='alvaro/circuit-irl',
@@ -18,11 +20,11 @@ neptune.init(project_qualified_name='alvaro/circuit-irl',
 
 class Actor(nn.Module):
 
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, net_dim):
         super(Actor, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 400)
-        self.fc2 = nn.Linear(400, 300)
-        self.fc3 = nn.Linear(300, output_dim)
+        self.fc1 = nn.Linear(input_dim, net_dim[0])
+        self.fc2 = nn.Linear(net_dim[0], net_dim[1])
+        self.fc3 = nn.Linear(net_dim[1], output_dim)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -31,16 +33,16 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, state_dim, action_dim):
+    def __init__(self, state_dim, action_dim, net_dim):
         super(Critic, self).__init__()
 
-        self.l1 = nn.Linear(state_dim + action_dim, 400)
-        self.l2 = nn.Linear(400, 300)
-        self.l3 = nn.Linear(300, 1)
+        self.l1 = nn.Linear(state_dim + action_dim, net_dim[0])
+        self.l2 = nn.Linear(net_dim[0], net_dim[1])
+        self.l3 = nn.Linear(net_dim[1], 1)
 
-        self.l4 = nn.Linear(state_dim + action_dim, 400)
-        self.l5 = nn.Linear(400, 300)
-        self.l6 = nn.Linear(300, 1)
+        self.l4 = nn.Linear(state_dim + action_dim, net_dim[0])
+        self.l5 = nn.Linear(net_dim[0], net_dim[1])
+        self.l6 = nn.Linear(net_dim[1], 1)
 
     def forward(self, state, action):
         x = torch.cat([state, action], 1)
@@ -117,14 +119,15 @@ def cfg():
     discount_factor = 0.99
     tau = 0.005
     lr = 1e-3
+    actor_net_dim = [400, 300]
+    critic_net_dim = [400, 300]
+
     env_name = 'HalfCheetahPyBulletEnv-v0'
 
 
 @ex.automain
 def main(start_exploiting, max_steps, noise, noise_clip, noise_std, update_interval, memory_batch_size, discount_factor,
-         tau, lr, plot_interval, env_name, evaluate_iterations):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+         tau, lr, plot_interval, env_name, evaluate_iterations, critic_net_dim, actor_net_dim):
     seed = np.random.randint(0, 100000)
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -141,11 +144,11 @@ def main(start_exploiting, max_steps, noise, noise_clip, noise_std, update_inter
     state_dimension = env.observation_space.shape[0]
     action_dimension = env.action_space.shape[0]
 
-    actor = Actor(state_dimension, action_dimension).to(device)
+    actor = Actor(state_dimension, action_dimension, actor_net_dim).to(device)
     actor_target = copy.deepcopy(actor).to(device)
     actor_optimizer = optim.Adam(actor.parameters(), lr=lr)
 
-    critic = Critic(state_dimension, action_dimension).to(device)
+    critic = Critic(state_dimension, action_dimension, critic_net_dim).to(device)
     critic_target = copy.deepcopy(critic).to(device)
     critic_optimizer = torch.optim.Adam(critic.parameters(), lr=lr)
 
