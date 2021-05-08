@@ -1,0 +1,13 @@
+GAIL:
+  env: 'HumanoidPyBulletEnv-v0'
+  actor_net_dim: [ 400, 300 ]
+  discriminator_net_dim: [ 400, 300 ]
+  n_epochs: 100000
+  eval_frequency: 100
+  lr: 0.0002
+  betas: [ 0.5, 0.999 ]
+  n_iter: 100
+  batch_size: 512
+  max_timesteps: 1000
+  n_eval_episodes: 30
+  expert: "TD3/trajectories/HumanoidPyBulletEnv-v0threshold1550traj50.pkl"
